@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p . && node scripts/postbuild.js",
+    "build": "tsc -p .",
     "start": "node dist/index.js",
     "test": "vitest run"
   },
@@ -27,7 +27,6 @@
     "nodemailer": "^6.9.15",
     "pdfkit": "^0.20.2",
     "qrcode": "^1.5.4",
-    "typescript": "^5.6.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
