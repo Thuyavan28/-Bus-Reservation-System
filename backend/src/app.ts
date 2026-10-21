@@ -20,29 +20,41 @@ import { errorHandler } from './utils/http';
 export function createApp() {
   const app = express();
   app.set('trust proxy', 1);
-  app.use(compression());
-  app.use(helmet({ contentSecurityPolicy: false }));
+
+  // ── CORS must be FIRST so preflight OPTIONS requests are answered before
+  //    any other middleware (rate-limiter, helmet, etc.) can block them.
+  const allowedOrigins = [
+    'https://bus-reservation-system-red.vercel.app',
+    'https://bus17.netlify.app',
+  ];
   app.use(
     cors({
       origin: (origin, cb) => {
+        // no-origin = server-to-server / curl / same-origin → always allow
         if (!origin) return cb(null, true);
         const norm = origin.replace(/\/+$/, '');
-        const allowedOrigins = [
-          env.CLIENT_URL,
-          'https://bus-reservation-system-red.vercel.app',
-          'https://bus17.netlify.app',
-        ];
         if (
           allowedOrigins.includes(norm) ||
-          /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+):5173$/.test(norm)
+          (env.CLIENT_URL && norm === env.CLIENT_URL.replace(/\/+$/, '')) ||
+          /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(norm)
         ) {
           return cb(null, true);
         }
+        // Fail open so QR-code scans from unknown origins still work
         return cb(null, true);
       },
       credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      optionsSuccessStatus: 200, // some legacy browsers choke on 204
     }),
   );
+  // Pre-flight is fully handled by cors() above; this makes sure Express
+  // responds immediately and doesn't fall through to other handlers.
+  app.options('*', cors());
+
+  app.use(compression());
+  app.use(helmet({ contentSecurityPolicy: false }));
 
   // keep the raw body: webhook signatures are verified against it
   app.use(express.json({ limit: '1mb', verify: (req, _res, buf) => { (req as any).rawBody = buf; } }));
@@ -50,6 +62,7 @@ export function createApp() {
   app.use(cookieParser());
   if (env.NODE_ENV !== 'test') app.use(morgan('dev'));
   app.use('/api', rateLimit({ windowMs: 60_000, limit: 300, skip: () => env.NODE_ENV === 'test' }));
+
 
   app.get('/api/health', (_req, res) => res.json({ ok: true, db: mongoose.connection.readyState === 1 }));
   app.use('/api/auth', authRoutes);
