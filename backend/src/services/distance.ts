@@ -6,8 +6,8 @@ import { HttpError } from '../utils/http';
 import { createMemo } from '../utils/memo';
 
 // cities and cached route distances almost never change: skip the remote round trip
-const cityMemo = createMemo<any>(5 * 60_000);
-const routeHitMemo = createMemo<any>(10 * 60_000);
+const cityMemo = createMemo<any>(24 * 3600_000);
+const routeHitMemo = createMemo<any>(24 * 3600_000);
 
 export interface RouteInfo {
   available: boolean;
@@ -62,7 +62,7 @@ export const BUS_TIME_FACTOR = 1.25;
 /** Real road geometry + distance from OSRM (OpenStreetMap). Duration is the car time scaled to a bus. */
 async function callOsrm(a: Pt, b: Pt): Promise<{ distanceKm: number; durationMin: number; polyline: string }> {
   const url = `${env.OSRM_URL.replace(/\/$/, '')}/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=polyline`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(9000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
   if (!res.ok) throw new Error(`OSRM ${res.status}`);
   const j = (await res.json()) as { code?: string; routes?: { distance: number; duration: number; geometry: string }[] };
   const r = j.routes?.[0];
@@ -189,7 +189,13 @@ export async function getRouteInfo(fromId: string, toId: string): Promise<RouteI
       console.error('[distance] AI estimate failed:', (e as Error).message);
     }
   }
-  return { available: false };
+  // Instant highway estimate fallback: 1.25x road factor at ~52 km/h bus average
+  const line = haversineKm(from, to);
+  const km = Math.round(line * 1.25 * 10) / 10;
+  const durationMin = Math.max(30, Math.round((km / 52) * 60));
+  const fallback = { distanceKm: km, durationMin, polyline: '' };
+  await RouteDistanceCache.updateOne({ key }, { $set: { ...fallback, source: 'ai', createdAt: new Date() } }, { upsert: true }).catch(() => {});
+  return { available: true, ...fallback, cached: false, source: 'ai' };
 }
 
 export async function resolveCity(idOrSlug: string) {

@@ -5,27 +5,26 @@ const stopSchema = new Schema(
   { _id: false },
 );
 
-export const Trip = model(
-  'Trip',
-  new Schema(
-    {
-      operatorId: { type: Schema.Types.ObjectId, ref: 'Operator', required: true, index: true },
-      busId: { type: Schema.Types.ObjectId, ref: 'Bus', required: true },
-      routeId: { type: Schema.Types.ObjectId, ref: 'Route', required: true },
-      fromCityId: { type: Schema.Types.ObjectId, ref: 'City', required: true, index: true },
-      toCityId: { type: Schema.Types.ObjectId, ref: 'City', required: true, index: true },
-      departureTime: { type: Date, required: true, index: true },
-      fares: { seater: { type: Number, default: 0 }, sleeper: { type: Number, default: 0 } },
-      boarding: [stopSchema],
-      dropping: [stopSchema],
-      status: { type: String, enum: ['scheduled', 'running', 'completed', 'cancelled'], default: 'scheduled' },
-      // operator = published by an operator; seed / auto = sample data (shown to users as "Demo")
-      source: { type: String, enum: ['operator', 'seed', 'auto'], default: 'operator' },
-      location: { lat: Number, lng: Number, updatedAt: Date },
-    },
-    { timestamps: true },
-  ),
+const tripSchema = new Schema(
+  {
+    operatorId: { type: Schema.Types.ObjectId, ref: 'Operator', required: true, index: true },
+    busId: { type: Schema.Types.ObjectId, ref: 'Bus', required: true },
+    routeId: { type: Schema.Types.ObjectId, ref: 'Route', required: true },
+    fromCityId: { type: Schema.Types.ObjectId, ref: 'City', required: true, index: true },
+    toCityId: { type: Schema.Types.ObjectId, ref: 'City', required: true, index: true },
+    departureTime: { type: Date, required: true, index: true },
+    fares: { seater: { type: Number, default: 0 }, sleeper: { type: Number, default: 0 } },
+    boarding: [stopSchema],
+    dropping: [stopSchema],
+    status: { type: String, enum: ['scheduled', 'running', 'completed', 'cancelled'], default: 'scheduled' },
+    // operator = published by an operator; seed / auto = sample data (shown to users as "Demo")
+    source: { type: String, enum: ['operator', 'seed', 'auto'], default: 'operator' },
+    location: { lat: Number, lng: Number, updatedAt: Date },
+  },
+  { timestamps: true },
 );
+tripSchema.index({ fromCityId: 1, toCityId: 1, departureTime: 1, status: 1 });
+export const Trip = model('Trip', tripSchema);
 
 // One inventory row per seat per trip. The unique compound index is the hard guarantee
 // that a seat can never have two active owners.
