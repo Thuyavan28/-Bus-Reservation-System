@@ -12,22 +12,31 @@ export function wantsMemoryDb() {
 
 export async function connectDb(): Promise<{ memory: boolean }> {
   let uri = env.MONGODB_URI;
-  const memory = wantsMemoryDb();
-  if (memory) {
-    // Use a persistent data directory so user data survives server restarts.
-    const dbPath = path.join(os.homedir(), '.busgo-db');
-    const { MongoMemoryReplSet } = await import('mongodb-memory-server');
-    const rs = await MongoMemoryReplSet.create({
-      replSet: { count: 1, storageEngine: 'wiredTiger' },
-      instanceOpts: [{ dbPath, storageEngine: 'wiredTiger' }],
-    });
-    memoryServer = rs;
-    uri = rs.getUri('busgo');
-    console.warn(`[db] No Atlas cluster configured -> using persistent local MongoDB at ${dbPath}. Data is preserved across restarts.`);
+  let memory = wantsMemoryDb();
+  if (!memory) {
+    try {
+      await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+      await Promise.all(Object.values(mongoose.models).map((m) => m.init()));
+      return { memory: false };
+    } catch (err: any) {
+      console.warn(`[db] Atlas connection failed (${err?.message || err}) -> falling back to local persistent database.`);
+      memory = true;
+    }
   }
+
+  // Fallback to local persistent MongoDB
+  const dbPath = path.join(os.homedir(), '.busgo-db');
+  const { MongoMemoryReplSet } = await import('mongodb-memory-server');
+  const rs = await MongoMemoryReplSet.create({
+    replSet: { count: 1, storageEngine: 'wiredTiger' },
+    instanceOpts: [{ dbPath, storageEngine: 'wiredTiger' }],
+  });
+  memoryServer = rs;
+  uri = rs.getUri('busgo');
+  console.warn(`[db] Using persistent local MongoDB at ${dbPath}. Data is preserved across restarts.`);
   await mongoose.connect(uri);
   await Promise.all(Object.values(mongoose.models).map((m) => m.init()));
-  return { memory };
+  return { memory: true };
 }
 
 export async function disconnectDb() {
