@@ -27,8 +27,13 @@ export function createApp() {
       origin: (origin, cb) => {
         if (!origin) return cb(null, true);
         const norm = origin.replace(/\/+$/, '');
+        const allowedOrigins = [
+          env.CLIENT_URL,
+          'https://bus-reservation-system-red.vercel.app',
+          'https://bus17.netlify.app',
+        ];
         if (
-          norm === env.CLIENT_URL ||
+          allowedOrigins.includes(norm) ||
           /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+):5173$/.test(norm)
         ) {
           return cb(null, true);
@@ -38,6 +43,7 @@ export function createApp() {
       credentials: true,
     }),
   );
+
   // keep the raw body: webhook signatures are verified against it
   app.use(express.json({ limit: '1mb', verify: (req, _res, buf) => { (req as any).rawBody = buf; } }));
   app.use(express.urlencoded({ extended: false }));
