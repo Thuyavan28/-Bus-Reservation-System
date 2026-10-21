@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS — all theme colours live here.
+   Tailwind utilities reference these via the
+   CSS-variable bridge in tailwind.config.ts.
+───────────────────────────────────────────── */
+:root {
+  /* backgrounds */
+  --c-app:      #ffffff;
+  --c-card:     #ffffff;
+  --c-surface:  #ffffff;
+  --c-surface-tint: #f5f5f5;
+  --c-surface-muted: rgba(0,0,0,0.05);
+  --c-cream:    #ffffff;
+
+  /* text / border ink */
+  --c-ink:      #111111;
+  --c-ink-soft: #3d3d3d;
+
+  /* always-brand */
+  --c-brand:    #FF1840;
+}
+
+/* ─────── DARK MODE — flip every token ─────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-app:          #0d0d0d;
+    --c-card:         #1a1a1a;
+    --c-surface:      #1a1a1a;
+    --c-surface-tint: #242424;
+    --c-surface-muted: rgba(255,255,255,0.06);
+    --c-cream:        #1a1a1a;
+
+    --c-ink:          #f0f0f0;
+    --c-ink-soft:     #aaaaaa;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+  background: var(--c-app);
+  scroll-behavior: smooth;
+  color-scheme: light dark;
+}
+body {
+  background: var(--c-app);
+  color: var(--c-ink);
+  @apply font-sans antialiased;
+  overflow-x: hidden;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button, select, input { font: inherit; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+input::placeholder { color: color-mix(in srgb, var(--c-ink) 35%, transparent); font-size: 0.9375rem; }
+:focus-visible { outline: 3px solid rgb(255 24 64 / 0.4); outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+::selection { background: #FF1840; color: #ffffff; }
+
+/* ─────────────────────────────────────────────
+   COMPONENT UTILITIES
+───────────────────────────────────────────── */
+@layer components {
+  .glass {
+    border: 1px solid color-mix(in srgb, var(--c-ink) 10%, transparent);
+    background: color-mix(in srgb, var(--c-card) 90%, transparent);
+    backdrop-filter: blur(12px);
+  }
+  .page-in   { @apply animate-fadeUp; }
+  .btn-primary { @apply bg-brand text-white shadow-cta; }
+
+  /* skeleton blocks */
+  .skeleton {
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--c-ink) 8%, transparent);
+    @apply animate-pulse2;
+    animation-delay: var(--d, 0s);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   MAP / LEAFLET OVERRIDES
+───────────────────────────────────────────── */
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(18px) scale(0.92); letter-spacing: 0.3em; }
+  to   { opacity: 1; transform: none; letter-spacing: normal; }
+}
+
+.leaflet-container { background: var(--c-surface-tint) !important; font-family: inherit; }
+.route-glow  { filter: drop-shadow(0 0 5px rgba(255,24,64,.65)); }
+.route-base  { stroke-dasharray: 2 9; }
+
+.pin { display: flex; flex-direction: column; align-items: center; transform: translate(-50%,-100%); pointer-events: auto; }
+.pin-label {
+  white-space: nowrap; border-radius: 12px; padding: 4px 10px;
+  font-size: 12px; font-weight: 800; margin-bottom: 3px;
+  color: var(--c-app); background: var(--c-ink); border: 2px solid var(--c-ink);
+}
+.pin-dot {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  color: var(--c-app); border: 3px solid var(--c-app);
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+.vehicle {
+  display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+  background: #FF1840; color: #ffffff; border: 3px solid var(--c-app);
+  box-shadow: 0 0 0 6px rgba(255,24,64,.3), 0 8px 18px rgba(0,0,0,.45);
+  transform: translate(-50%,-50%);
+}
+
+.leaflet-control-attribution { font-size: 9px !important; background: color-mix(in srgb, var(--c-app) 88%, transparent) !important; color: var(--c-ink-soft) !important; }
+.leaflet-control-attribution a { color: #D00F31 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
