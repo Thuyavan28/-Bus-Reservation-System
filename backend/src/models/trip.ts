@@ -53,5 +53,6 @@ const inventorySchema = new Schema(
   { timestamps: true },
 );
 inventorySchema.index({ tripId: 1, seatId: 1 }, { unique: true });
+inventorySchema.index({ tripId: 1, status: 1 });
 inventorySchema.index({ holdExpiresAt: 1 });
 export const SeatInventory = model('SeatInventory', inventorySchema);

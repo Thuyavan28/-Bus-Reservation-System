@@ -84,7 +84,7 @@ export default function Home() {
       if (a.id === c.id) return toast.error(t('Choose two different places.'));
       setFrom(a); setTo(c); setFromText(tp(a.name)); setToText(tp(c.name));
       b.set({ from: asRef(a), to: asRef(c), ...(user ? { pax: b.pax.map((p, i) => (i === 0 ? { gender: user.gender } : p)) } : {}) });
-      setPopup(true);
+      nav(`/search?from=${a.slug}&to=${c.slug}&date=${b.date}`);
     } catch (e: any) {
       toast.error(e?.message ? errorMessage(e) : t('Type a valid source and destination.'));
     } finally { setResolving(false); }
