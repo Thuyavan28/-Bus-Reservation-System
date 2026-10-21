@@ -29,8 +29,6 @@ export function createApp() {
         const norm = origin.replace(/\/+$/, '');
         if (
           norm === env.CLIENT_URL ||
-          norm === 'https://bus17.netlify.app' ||
-          norm.endsWith('.netlify.app') ||
           /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+):5173$/.test(norm)
         ) {
           return cb(null, true);
