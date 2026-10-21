@@ -11,6 +11,8 @@ build/
 .env
 .env.*
 !.env.example
+!.env.production
+!frontend/.env.production
 *.env
 backend/.env
 frontend/.env
