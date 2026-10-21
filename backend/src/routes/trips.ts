@@ -7,12 +7,27 @@ import { ensureTripsForRoute } from '../services/tripGenerator';
 import { holdSeats, loadState, releaseHold, seatMapView } from '../services/seatService';
 import { decodePolyline, pointAlong } from '../utils/geo';
 import { asyncHandler, HttpError, parse } from '../utils/http';
+import { createMemo } from '../utils/memo';
 
 const r = Router();
 const istStart = (date: string) => new Date(`${date}T00:00:00+05:30`);
 
 const BANDS: Record<string, [number, number]> = { morning: [5, 12], afternoon: [12, 17], evening: [17, 21], night: [21, 29] };
 const istHour = (d: Date) => new Date(d.getTime() + 19_800_000).getUTCHours();
+
+const fleetMemo = createMemo<{ buses: Map<string, any>; ops: Map<string, any> }>(30 * 60_000);
+export async function getFleetMaps() {
+  return fleetMemo.get('fleet', async () => {
+    const [buses, ops] = await Promise.all([
+      Bus.find().select('name busType ac amenities').lean(),
+      Operator.find().select('name kind policy').lean(),
+    ]);
+    return {
+      buses: new Map(buses.map((b) => [String(b._id), b])),
+      ops: new Map(ops.map((o) => [String(o._id), o])),
+    };
+  });
+}
 
 r.get('/search', asyncHandler(async (req, res) => {
   const q = parse(
@@ -37,17 +52,14 @@ r.get('/search', asyncHandler(async (req, res) => {
     trips = await findTrips();
   }
 
-  const [buses, ops, counts] = await Promise.all([
-    Bus.find({ _id: { $in: trips.map((t) => t.busId) } }).select('name busType ac amenities').lean(),
-    Operator.find({ _id: { $in: trips.map((t) => t.operatorId) } }).select('name kind').lean(),
+  const [{ buses: busM, ops: opM }, counts] = await Promise.all([
+    getFleetMaps(),
     SeatInventory.aggregate([
       { $match: { tripId: { $in: trips.map((t) => t._id) }, status: { $in: ['available', 'cancellation_pending'] } } },
       { $match: { $or: [{ holdExpiresAt: { $exists: false } }, { holdExpiresAt: null }, { holdExpiresAt: { $lte: now } }] } },
       { $group: { _id: '$tripId', n: { $sum: 1 } } },
     ]),
   ]);
-  const busM = new Map(buses.map((b) => [String(b._id), b]));
-  const opM = new Map(ops.map((o) => [String(o._id), o]));
   const cntM = new Map(counts.map((c) => [String(c._id), c.n as number]));
 
   let rows = trips.map((t) => {
@@ -100,10 +112,14 @@ r.get('/search', asyncHandler(async (req, res) => {
 r.get('/:id', asyncHandler(async (req, res) => {
   const t = await Trip.findById(req.params.id).lean();
   if (!t) throw new HttpError(404, 'TRIP_NOT_FOUND');
-  const [bus, operator, from, to, route] = await Promise.all([
-    Bus.findById(t.busId).lean(), Operator.findById(t.operatorId).select('name kind policy').lean(),
-    City.findById(t.fromCityId).lean(), City.findById(t.toCityId).lean(), getRouteInfo(String(t.fromCityId), String(t.toCityId)),
+  const [{ buses: busM, ops: opM }, from, to, route] = await Promise.all([
+    getFleetMaps(),
+    resolveCity(String(t.fromCityId)),
+    resolveCity(String(t.toCityId)),
+    getRouteInfo(String(t.fromCityId), String(t.toCityId)),
   ]);
+  const bus = busM.get(String(t.busId));
+  const operator = opM.get(String(t.operatorId));
   res.json({
     id: String(t._id), departureTime: t.departureTime, status: t.status, fares: t.fares, boarding: t.boarding,
     dropping: t.dropping.map((d: any, i: number) => ({ ...d, time: route.available ? new Date(t.departureTime.getTime() + (route.durationMin! + i * 10) * 60_000) : null })),

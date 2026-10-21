@@ -2,6 +2,9 @@ import { Bus, Route, Trip } from '../models';
 import { haversineKm } from '../utils/geo';
 import { getRouteInfo } from './distance';
 import { ensureInventory } from './seatService';
+import { createMemo } from '../utils/memo';
+
+const busesMemo = createMemo<any[]>(60 * 60_000);
 
 /** Daily departure slots (IST hh:mm). */
 export const SLOTS: [number, number][] = [[5, 30], [8, 0], [13, 30], [17, 0], [21, 0], [22, 45]];
@@ -42,7 +45,7 @@ async function generate(from: any, to: any, dayStart: Date): Promise<number> {
   const existing = await Trip.find({ fromCityId: from._id, toCityId: to._id, departureTime: { $gte: dayStart, $lt: dayEnd }, status: { $ne: 'cancelled' } }).select('departureTime').lean();
   if (existing.length >= MIN_TRIPS) return 0;
   const [buses, route, info] = await Promise.all([
-    Bus.find().lean(),
+    busesMemo.get('all', () => Bus.find().lean()),
     Route.findOneAndUpdate({ fromCityId: from._id, toCityId: to._id }, { $setOnInsert: { popular: false } }, { upsert: true, new: true }),
     getRouteInfo(String(from._id), String(to._id)),
   ]);
