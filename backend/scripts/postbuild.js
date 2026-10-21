@@ -7,7 +7,8 @@ if (!fs.existsSync(distDir)) {
 }
 
 // Entrypoint template for Vercel Express preset
-const entryContent = `const { createApp } = require('./backend/src/app');
+const entryContent = `const express = require('express');
+const { createApp } = require('./backend/src/app');
 const { connectDb } = require('./backend/src/db');
 const { ensureCities } = require('./backend/src/services/cityService');
 const { env } = require('./backend/src/config/env');
