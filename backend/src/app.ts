@@ -22,7 +22,24 @@ export function createApp() {
   app.set('trust proxy', 1);
   app.use(compression());
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+  app.use(
+    cors({
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        const norm = origin.replace(/\/+$/, '');
+        if (
+          norm === env.CLIENT_URL ||
+          norm === 'https://bus17.netlify.app' ||
+          norm.endsWith('.netlify.app') ||
+          /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+):5173$/.test(norm)
+        ) {
+          return cb(null, true);
+        }
+        return cb(null, true);
+      },
+      credentials: true,
+    }),
+  );
   // keep the raw body: webhook signatures are verified against it
   app.use(express.json({ limit: '1mb', verify: (req, _res, buf) => { (req as any).rawBody = buf; } }));
   app.use(express.urlencoded({ extended: false }));

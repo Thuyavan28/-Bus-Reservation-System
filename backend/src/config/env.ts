@@ -4,7 +4,7 @@ import { z } from 'zod';
 const schema = z.object({
   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().default(4000),
-  CLIENT_URL: z.string().default('http://localhost:5173'),
+  CLIENT_URL: z.string().default('https://bus17.netlify.app').transform((u) => u.replace(/\/+$/, '')),
   SERVER_PUBLIC_URL: z.string().default('http://localhost:4000'),
   MONGODB_URI: z.string().default(''),
   USE_MEMORY_DB: z.string().default(''),
@@ -26,7 +26,7 @@ const schema = z.object({
   // Open-source road routing (real road geometry + distance). Empty disables it.
   OSRM_URL: z.string().default('https://router.project-osrm.org'),
   // Public base URL of the web app, encoded into payment QR codes (use your LAN IP to scan from a phone).
-  PUBLIC_APP_URL: z.string().default(''),
+  PUBLIC_APP_URL: z.string().default('https://bus17.netlify.app').transform((u) => u.replace(/\/+$/, '')),
   GROQ_API_KEY_1: z.string().default(''),
   GROQ_API_KEY_2: z.string().default(''),
   GROQ_MODEL: z.string().default('openai/gpt-oss-120b'),
