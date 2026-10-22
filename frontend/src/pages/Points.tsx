@@ -29,8 +29,8 @@ export default function Points() {
     <section className="space-y-2">
       <p className="flex items-center gap-2 font-extrabold"><Icon size={16} className={tone} />{title}</p>
       {items.map((p) => (
-        <button key={p.pointId} onClick={() => onPick(p.pointId)} className={`flex w-full items-center gap-3 rounded-2xl border p-3.5 text-left transition active:scale-[.99] ${value === p.pointId ? 'border-brand bg-card shadow-card' : 'border-ink/10 bg-card'}`}>
-          <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 ${value === p.pointId ? 'border-brand bg-brand text-cream' : 'border-ink/25'}`}>{value === p.pointId && <LuCheck size={13} strokeWidth={4} />}</span>
+        <button key={p.pointId} onClick={() => onPick(p.pointId)} className={`flex w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition active:scale-[.99] ${value === p.pointId ? 'border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'border-2 border-black/30 bg-white hover:border-black'}`}>
+          <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 border-black ${value === p.pointId ? 'bg-brand text-white' : 'border-black/30'}`}>{value === p.pointId && <LuCheck size={13} strokeWidth={4} />}</span>
           <span className="min-w-0 flex-1"><span className="block truncate font-bold">{tp(p.name)}</span><span className="block truncate text-xs text-ink-soft">{tp(p.landmark)}</span></span>
           {p.time && <span className="text-sm font-extrabold">{time(p.time)}</span>}
         </button>
@@ -44,7 +44,7 @@ export default function Points() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start lg:gap-8">
         <div className="space-y-4 lg:sticky lg:top-24">
           <Countdown to={b.holdExpiresAt} label={t('holdTimer')} onExpire={() => { b.clearSelection(); nav(`/trip/${id}/seats`, { replace: true }); }} />
-          {tr ? <MapLazy markers={markers} selectedId={b.boardingPointId ? `b:${b.boardingPointId}` : null} onMarkerClick={onPin} className="h-64 !rounded-[1.8rem] border-2 border-ink lg:h-[30rem]" padding={[48, 48]} /> : <Skeleton className="h-64 !rounded-3xl lg:h-[30rem]" />}
+          {tr ? <MapLazy markers={markers} selectedId={b.boardingPointId ? `b:${b.boardingPointId}` : null} onMarkerClick={onPin} className="h-64 !rounded-[1.8rem] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] lg:h-[30rem]" padding={[48, 48]} /> : <Skeleton className="h-64 !rounded-3xl lg:h-[30rem]" />}
         </div>
         <div className="space-y-4">
       {tr ? (
@@ -54,7 +54,7 @@ export default function Points() {
         </>
       ) : <><Skeleton className="h-20" i={1} /><Skeleton className="h-20" i={2} /></>}
       <div className="sticky bottom-3 z-20">
-        <button disabled={!b.boardingPointId || !b.droppingPointId} onClick={() => nav(`/trip/${id}/passengers`)} className="w-full rounded-2xl bg-brand py-4 text-base font-extrabold text-cream shadow-cta transition hover:bg-brand-500 active:scale-[.99] disabled:opacity-50">{t('continue')}</button>
+        <button disabled={!b.boardingPointId || !b.droppingPointId} onClick={() => nav(`/trip/${id}/passengers`)} className="w-full rounded-xl border-2 border-black bg-brand py-4 text-base font-extrabold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.99] disabled:opacity-50">{t('continue')}</button>
       </div>
         </div>
       </div>

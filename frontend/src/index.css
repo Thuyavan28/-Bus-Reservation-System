@@ -127,3 +127,106 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────
+   MAP LOADER ANIMATIONS
+───────────────────────────────────────────── */
+@keyframes tileReveal {
+  0%   { opacity: 0; transform: scale(0.94); }
+  60%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.18; }
+}
+@keyframes pinPulse {
+  0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0   rgba(255,24,64,0.6); }
+  50%       { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(255,24,64,0);   }
+}
+@keyframes cityBlink {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.6); }
+}
+@keyframes shimmerX {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes busMarch {
+  0%   { offset-distance: 0%;   }
+  100% { offset-distance: 100%; }
+}
+
+/* tile grid cells */
+.map-tile-cell {
+  background: linear-gradient(135deg, #16213e 0%, #0f3460 50%, #16213e 100%);
+  animation: tileReveal 2.4s ease-in-out infinite;
+}
+
+/* animated bus */
+.bus-traveller {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.bus-dot {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FF1840;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 5px rgba(255,24,64,.3), 0 4px 12px rgba(0,0,0,.5);
+  display: grid;
+  place-items: center;
+  /* follow the SVG path defined as #bus-path */
+  offset-path: path("M 8% 80% C 25% 80%, 35% 30%, 55% 25% S 80% 40% 92% 20%");
+  offset-distance: 0%;
+  animation: busMarch 4s linear infinite;
+  transform: translate(-50%, -50%);
+}
+/* fallback for browsers without offset-path */
+@supports not (offset-path: path("M0 0")) {
+  .bus-dot {
+    left: 10%; top: 70%;
+    animation: none;
+  }
+}
+
+/* pulsing pin rings */
+.pin-pulse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pinPulse 1.8s ease-in-out infinite;
+}
+.pin-core {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+
+/* city dots */
+.city-dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid rgba(255,24,64,0.8);
+  transform: translate(-50%, -50%);
+  animation: cityBlink 2.2s ease-in-out infinite;
+}
+
+/* shimmer wave */
+.shimmer-wave::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255,255,255,0.06) 50%,
+    transparent 70%
+  );
+  animation: shimmerX 2.5s ease-in-out infinite;
+}
+

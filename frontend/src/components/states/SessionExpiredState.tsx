@@ -38,9 +38,9 @@ export function SessionExpiredModal({
       aria-labelledby="session-expired-title"
       className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade"
     >
-      <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-card p-6 text-center shadow-2xl animate-pop sm:p-8">
+      <div className="w-full max-w-md rounded-3xl border-2 border-black bg-white p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pop sm:p-8 dark:border-white dark:bg-zinc-900">
         {/* Lock badge */}
-        <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-brand/10 text-brand ring-8 ring-brand/5">
+        <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl border-2 border-black bg-brand/10 text-brand shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <LuLock size={28} />
         </div>
 
@@ -56,7 +56,7 @@ export function SessionExpiredModal({
 
         {/* Preserved unsaved work notice */}
         {savedDraftSummary && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-50/70 p-3 text-left text-xs text-emerald-900 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border-2 border-black bg-emerald-50/70 p-3 text-left text-xs text-emerald-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-200">
             <LuShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <div>
               <p className="font-bold">Your progress is saved</p>
@@ -70,7 +70,7 @@ export function SessionExpiredModal({
           <button
             type="button"
             onClick={handleSignIn}
-            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-cream shadow-cta transition hover:bg-brand-500 active:scale-95"
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-3 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
           >
             <LuLogIn size={16} />
             Sign In to Continue

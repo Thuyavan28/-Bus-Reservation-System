@@ -33,6 +33,14 @@ export const shortDate = (d?: string | Date | null) =>
 
 export const duration = (min?: number | null) => (min == null ? null : i18n.t('{{h}}h {{m}}m', { h: Math.floor(min / 60), m: String(min % 60).padStart(2, '0') }));
 
+export const dayStr = (d: string | Date) =>
+  new Date(d).toLocaleDateString(loc(), {
+    timeZone: IST,
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+
 /** yyyy-mm-dd for N days from today (IST). */
 export const isoPlus = (days: number) => new Date(Date.now() + 19_800_000 + days * 864e5).toISOString().slice(0, 10);
 

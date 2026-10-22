@@ -3,6 +3,7 @@ import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import { env } from '../config/env';
 import { Booking, BookingPassenger, City, EmailJob, Operator, Refund, Trip, User } from '../models';
+import { publicAppOrigin } from '../utils/network';
 
 // ---------- queue ----------
 export type EmailTemplate =
@@ -49,7 +50,7 @@ const getTransport = () => {
 };
 export const emailConfigured = () => (env.EMAIL_PROVIDER === 'resend' ? !!env.RESEND_API_KEY : !!env.SMTP_HOST);
 
-async function deliver(msg: { to: string; subject: string; html: string; attachments?: { filename: string; content: Buffer }[] }) {
+async function deliver(msg: { to: string; subject: string; html: string; attachments?: { filename: string; content: Buffer; cid?: string }[] }) {
   if (env.EMAIL_PROVIDER === 'resend' && env.RESEND_API_KEY) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -122,7 +123,10 @@ export async function loadBookingBundle(bookingId: string) {
   return { booking, trip, passengers, user, operator, from, to, boarding, dropping };
 }
 
-export const qrPayload = (pnr: string, bookingId: string) => `BUSGO|${pnr}|${bookingId}`;
+export const qrPayload = (pnr: string, _bookingId?: string, requestOrigin?: string | null) => {
+  const { origin } = publicAppOrigin({ configured: env.PUBLIC_APP_URL, requestOrigin, fallback: env.CLIENT_URL });
+  return `${origin}/ticket/verify/${pnr}`;
+};
 
 function shell(title: string, body: string) {
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#F4F4F8;padding:32px 16px;">
@@ -177,69 +181,79 @@ async function renderEmail(template: EmailTemplate, bookingId: string | undefine
 
   switch (template) {
     case 'booking_confirmation': {
-      const qr = await QRCode.toDataURL(qrPayload(booking.pnr, String(booking._id)), { margin: 1, width: 180 });
+      const qrBuffer = await QRCode.toBuffer(qrPayload(booking.pnr, String(booking._id)), {
+        margin: 1,
+        width: 200,
+        color: { dark: '#000000', light: '#FFFFFF' },
+      });
       const pdf = await buildTicketPdf(String(booking._id));
       return {
-        subject: `Booking Confirmed – PNR ${booking.pnr} – ${route}`,
+        subject: `🎫 Booking Confirmed – PNR ${booking.pnr} – ${route}`,
         html: shell(
           'Your Ticket Booking is Successful!',
-          `<div style="display:inline-block;background:#E6F4EA;border:2px solid #137333;color:#137333;font-size:13px;font-weight:800;padding:6px 14px;border-radius:20px;margin-bottom:16px;">
+          `<div style="display:inline-block;background:#E6F4EA;border:1px solid #137333;color:#137333;font-size:13px;font-weight:800;padding:6px 14px;border-radius:20px;margin-bottom:16px;">
             ✓ Payment Received · Ticket Confirmed
           </div>
 
-          <div style="border:2px solid #000000;border-radius:18px;background:#FAFAFA;padding:20px;margin-bottom:20px;">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #E5E7EB;padding-bottom:12px;margin-bottom:14px;">
+          <div style="border:1px solid #E5E7EB;border-radius:18px;background:#FAFAFA;padding:22px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #E5E7EB;padding-bottom:14px;margin-bottom:16px;">
               <div>
-                <div style="font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;">PNR NUMBER</div>
-                <div style="font-size:22px;font-weight:900;color:#FF1840;letter-spacing:1px;">${booking.pnr}</div>
+                <div style="font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;letter-spacing:0.8px;">PNR NUMBER</div>
+                <div style="font-size:24px;font-weight:900;color:#FF1840;letter-spacing:1px;margin-top:2px;">${booking.pnr}</div>
               </div>
               <div style="text-align:right;">
                 <div style="font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;">OPERATOR</div>
-                <div style="font-size:15px;font-weight:800;color:#111827;">${operator?.name ?? 'Express'}</div>
+                <div style="font-size:16px;font-weight:800;color:#111827;margin-top:2px;">${operator?.name ?? 'Express'}</div>
               </div>
             </div>
 
-            <div style="font-size:18px;font-weight:900;color:#111827;margin-bottom:6px;">${route}</div>
+            <div style="font-size:20px;font-weight:900;color:#111827;margin-bottom:6px;">${route}</div>
             <div style="font-size:13px;color:#4B5563;margin-bottom:14px;">
               <b>Departs:</b> ${fmt(trip.departureTime)} &nbsp;·&nbsp; <b>Arrives:</b> ${fmt(booking.arrivalTime)}
             </div>
 
-            <div style="border-top:1px dashed #D1D5DB;padding-top:12px;margin-bottom:12px;font-size:13px;color:#374151;">
-              <div><b>Boarding:</b> ${boarding?.name ?? '—'} (${fmt(boarding?.time)})</div>
-              <div style="margin-top:4px;"><b>Dropping:</b> ${dropping?.name ?? '—'}</div>
-              <div style="margin-top:4px;"><b>Route Distance:</b> ${distance}</div>
+            <div style="border-top:1px dashed #D1D5DB;padding-top:14px;margin-bottom:14px;font-size:13px;color:#374151;line-height:1.7;">
+              <div><b>Boarding Point:</b> ${boarding?.name ?? '—'} (${fmt(boarding?.time)})</div>
+              <div><b>Dropping Point:</b> ${dropping?.name ?? '—'}</div>
+              <div><b>Journey Telemetry:</b> ${distance}</div>
             </div>
 
-            <div style="border-top:1px dashed #D1D5DB;padding-top:12px;margin-bottom:14px;">
-              <div style="font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;margin-bottom:6px;">Passenger &amp; Assigned Seats</div>
-              <div style="font-size:14px;color:#111827;line-height:1.7;">${seats}</div>
+            <div style="border-top:1px dashed #D1D5DB;padding-top:14px;margin-bottom:16px;">
+              <div style="font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;margin-bottom:6px;">Passenger Details &amp; Seats</div>
+              <div style="font-size:14px;color:#111827;line-height:1.8;">${seats}</div>
             </div>
 
-            <div style="border-top:2px solid #000000;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="border-top:2px solid #111827;padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
               <div style="font-size:14px;font-weight:800;color:#111827;">Total Amount Paid</div>
-              <div style="font-size:20px;font-weight:900;color:#FF1840;">${inr(booking.price!.total!)} <span style="font-size:11px;color:#6B7280;font-weight:600;">(Incl. GST)</span></div>
+              <div style="font-size:22px;font-weight:900;color:#FF1840;">${inr(booking.price?.total ?? 0)} <span style="font-size:11px;color:#6B7280;font-weight:600;">(Incl. GST)</span></div>
             </div>
           </div>
 
           <div style="text-align:center;margin:24px 0 20px;">
             <div style="font-size:12px;font-weight:800;color:#6B7280;margin-bottom:8px;text-transform:uppercase;">BOARDING PASS QR CODE</div>
-            <img src="${qr}" width="180" height="180" alt="QR E-ticket" style="border:2px solid #000;border-radius:14px;padding:6px;background:#fff;" />
+            <div style="display:inline-block;padding:8px;background:#ffffff;border:2px solid #111827;border-radius:16px;">
+              <img src="cid:boarding_qr" width="180" height="180" alt="QR E-ticket" style="display:block;border-radius:8px;" />
+            </div>
+            <div style="font-size:11px;color:#6B7280;margin-top:6px;">Present this QR code or your attached PDF to conductor</div>
           </div>
 
           <div style="text-align:center;margin-bottom:22px;">
-            <a href="${track}" style="display:inline-block;background:#FF1840;color:#ffffff;font-size:15px;font-weight:800;padding:14px 32px;border-radius:14px;border:2px solid #000;text-decoration:none;box-shadow:0 4px 14px rgba(255,24,64,0.35);">
-              Track My Bus Live →
+            <a href="${env.CLIENT_URL}/booking/${booking._id}" style="display:inline-block;background:#FF1840;color:#ffffff;font-size:15px;font-weight:800;padding:14px 34px;border-radius:14px;text-decoration:none;box-shadow:0 4px 14px rgba(255,24,64,0.35);">
+              View E-Ticket &amp; Live Tracking →
             </a>
           </div>
 
           <div style="background:#FFF1F2;border:1px solid #FECDD3;border-radius:12px;padding:12px 16px;font-size:12px;color:#9F1239;line-height:1.5;margin-bottom:12px;">
-            <b>PDF Ticket Attached:</b> Your printable e-ticket with barcode and journey telemetry is attached to this email.
+            <b>📄 Printable PDF Ticket Attached:</b> Your complete e-ticket with barcode, passenger details and terms is attached to this email.
           </div>
           <div style="font-size:11px;color:#6B7280;line-height:1.4;">
-            <b>Cancellation &amp; Refund Policy:</b> ${POLICY_TEXT}
+            <b>Cancellation Policy:</b> ${POLICY_TEXT}
           </div>`,
         ),
-        attachments: [{ filename: `ticket-${booking.pnr}.pdf`, content: pdf }],
+        attachments: [
+          { filename: `ticket-${booking.pnr}.pdf`, content: pdf },
+          { filename: `boarding-qr.png`, content: qrBuffer, cid: 'boarding_qr' },
+        ],
       };
     }
     case 'payment_failed':

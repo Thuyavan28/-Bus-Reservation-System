@@ -39,7 +39,13 @@ r.post('/signup', authLimiter, asyncHandler(async (req, res) => {
 r.post('/login', authLimiter, asyncHandler(async (req, res) => {
   const b = parse(z.object({ email: z.string().email(), password: z.string().min(1) }), req.body);
   const u = await User.findOne({ email: b.email.toLowerCase() });
-  if (!u || !(await checkPassword(b.password, u.passwordHash))) throw new HttpError(401, 'BAD_CREDENTIALS', 'Wrong email or password');
+  if (!u) {
+    throw new HttpError(404, 'ACCOUNT_NOT_FOUND', 'Account unavailable. Please check your email or create an account first.');
+  }
+  const passwordMatch = await checkPassword(b.password, u.passwordHash);
+  if (!passwordMatch) {
+    throw new HttpError(401, 'INCORRECT_PASSWORD', 'Incorrect password. Please check your password.');
+  }
   res.json(await session(res, u));
 }));
 
@@ -93,13 +99,16 @@ r.get('/me', requireAuth, asyncHandler(async (req, res) => {
 
 r.patch('/me', requireAuth, asyncHandler(async (req, res) => {
   const b = parse(z.object({ name: z.string().min(2).max(80).optional(), phone: phone.optional(), gender: gender.optional(), age: age.optional(), language: z.enum(['en', 'ta', 'ml', 'kn']).optional() }), req.body);
-  // Seat eligibility depends on gender, so the account's gender is fixed once it is set at signup.
+  // Seat eligibility depends on gender, so the account's gender is fixed once it is set.
+  // Allow setting gender for the first time; block changing it after it is set.
   if (b.gender) {
     const cur = await User.findById(req.auth!.id).select('gender').lean();
     if (cur?.gender && cur.gender !== b.gender) throw new HttpError(403, 'GENDER_LOCKED', 'Gender cannot be changed after signup');
-    delete b.gender;
+    // If already the same, no-op (safe to leave in the update).
+    // If not yet set (cur?.gender is falsy), allow it through — do NOT delete.
   }
   const u = await User.findByIdAndUpdate(req.auth!.id, { $set: b }, { new: true });
+  if (!u) throw new HttpError(404, 'NOT_FOUND', 'User not found');
   res.json({ user: publicUser(u) });
 }));
 

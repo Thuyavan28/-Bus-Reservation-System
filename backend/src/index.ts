@@ -28,7 +28,19 @@ async function init() {
 if (process.env.VERCEL !== '1') {
   init()
     .then(() => {
-      app.listen(env.PORT, () => console.log(`API on :${env.PORT}`));
+      const startServer = (retries = 1) => {
+        const server = app.listen(env.PORT, () => console.log(`API on :${env.PORT}`));
+        server.on('error', (err: NodeJS.ErrnoException) => {
+          if (err.code === 'EADDRINUSE' && retries > 0) {
+            console.warn(`[server] Port ${env.PORT} in use, retrying in 2s…`);
+            setTimeout(() => startServer(retries - 1), 2000);
+          } else {
+            console.error(err);
+            process.exit(1);
+          }
+        });
+      };
+      startServer();
     })
     .catch((e) => {
       console.error(e);

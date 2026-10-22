@@ -56,10 +56,12 @@ export default {
       },
       borderRadius: { xl2: '1.25rem', xl3: '1.75rem' },
       boxShadow: {
-        card: '0 1px 0 rgba(0,0,0,0.04), 0 10px 28px rgba(0,0,0,0.07)',
-        lift: '0 2px 0 rgba(0,0,0,0.04), 0 18px 44px rgba(0,0,0,0.14)',
-        cta:  '0 8px 20px rgba(255,24,64,0.28)',
-        glow: '0 8px 22px rgba(255,24,64,0.22)',
+        card: '4px 4px 0px 0px rgba(0,0,0,1)',
+        lift: '4px 4px 0px 0px rgba(0,0,0,1)',
+        cta:  '2px 2px 0px 0px rgba(0,0,0,1)',
+        glow: '2px 2px 0px 0px rgba(0,0,0,1)',
+        neo:  '4px 4px 0px 0px rgba(0,0,0,1)',
+        'neo-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
       },
       keyframes: {
         kenburns: { '0%': { transform: 'scale(1)' },   '100%': { transform: 'scale(1.15)' } },

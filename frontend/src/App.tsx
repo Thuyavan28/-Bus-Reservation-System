@@ -21,6 +21,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Results = lazy(() => import('./pages/Results'));
 const Seats = lazy(() => import('./pages/Seats'));
 const Ticket = lazy(() => import('./pages/Ticket'));
+const TicketVerify = lazy(() => import('./pages/TicketVerify'));
 const Track = lazy(() => import('./pages/Track'));
 const TrackIndex = lazy(() => import('./pages/Track').then((m) => ({ default: m.TrackIndex })));
 const Trips = lazy(() => import('./pages/Trips'));
@@ -43,6 +44,8 @@ export default function App() {
         <Route path="/" element={<Entry />} />
       {/* opened by scanning the payment QR: public, the token is the credential */}
       <Route path="/pay/approve/:token" element={<Suspense fallback={null}><PaymentApprove /></Suspense>} />
+      {/* opened by scanning the boarding pass / ticket QR: public, PNR is the verification key */}
+      <Route path="/ticket/verify/:pnr" element={<Suspense fallback={null}><TicketVerify /></Suspense>} />
       {/* full-page auth screens (no site navbar) */}
       <Route path="/login" element={<Suspense fallback={null}><Login /></Suspense>} />
       <Route path="/forgot-password" element={<Suspense fallback={null}><ForgotPassword /></Suspense>} />

@@ -6,7 +6,11 @@ import i18n from '../i18n';
 import { useUI } from '../store/ui';
 
 const ICON = { success: LuCircleCheck, error: LuTriangleAlert, info: LuInfo } as const;
-const TONE = { success: 'bg-surface-tint text-ink border-ink', error: 'bg-brand text-cream border-brand', info: 'bg-card text-ink border-ink' } as const;
+const TONE = {
+  success: 'bg-emerald-600 text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
+  error: 'bg-brand text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
+  info: 'bg-white text-ink border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
+} as const;
 
 /** Popup notifications, centred at the top of every screen. */
 export function ToastHost() {
@@ -16,8 +20,16 @@ export function ToastHost() {
       {toasts.map((t) => {
         const Icon = ICON[t.kind];
         return (
-          <button key={t.id} onClick={() => dismiss(t.id)} className={`pointer-events-auto flex w-full max-w-md animate-pop items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left text-sm font-bold shadow-lift ${TONE[t.kind]}`}>
-            <Icon size={18} className="shrink-0" /><span className="flex-1">{t.text}</span>
+          <button
+            key={t.id}
+            onClick={() => dismiss(t.id)}
+            className={`pointer-events-auto flex w-full max-w-md animate-pop items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 ${TONE[t.kind]}`}
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-black/20 text-white">
+              <Icon size={18} />
+            </span>
+            <span className="flex-1 font-extrabold leading-snug">{t.text}</span>
+            <LuX size={16} className="shrink-0 opacity-80" />
           </button>
         );
       })}
@@ -54,11 +66,11 @@ export function Modal({ open, onClose, title, children, dismissible = true }: { 
       onMouseDown={(e) => e.target === e.currentTarget && dismissible && onClose()}
       role="dialog" aria-modal="true" aria-label={title}
     >
-      <div className={`max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2rem] border-2 border-ink bg-card p-5 pb-7 shadow-lift ${closing ? 'animate-dialogOut' : 'animate-dialogIn'}`}>
+      <div className={`max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2rem] border-2 border-black bg-white p-5 pb-7 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900 ${closing ? 'animate-dialogOut' : 'animate-dialogIn'}`}>
         {title && (
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-extrabold">{title}</h2>
-            {dismissible && <button onClick={onClose} aria-label={i18n.t('Close')} className="grid h-9 w-9 place-items-center rounded-full border-2 border-ink bg-card transition hover:bg-ink hover:text-cream active:scale-90"><LuX size={16} /></button>}
+            {dismissible && <button onClick={onClose} aria-label={i18n.t('Close')} className="grid h-9 w-9 place-items-center rounded-full border-2 border-black bg-white text-ink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:bg-black hover:text-white active:scale-90 dark:border-white dark:bg-zinc-800 dark:hover:bg-white dark:hover:text-black"><LuX size={16} /></button>}
           </div>
         )}
         {children}
@@ -77,8 +89,8 @@ export function ConfirmModal({ open, title, text, confirmLabel = 'Confirm', tone
       <div className="space-y-4 text-sm text-ink-soft">
         <div>{text}</div>
         <div className="grid grid-cols-2 gap-2">
-          <button onClick={onClose} className="rounded-2xl border-2 border-ink bg-surface-tint py-3.5 font-bold text-ink transition active:scale-95">{t('Not now')}</button>
-          <button onClick={onConfirm} disabled={busy} className={`rounded-2xl py-3.5 font-bold transition active:scale-95 disabled:opacity-60 ${tone === 'danger' ? 'bg-ink text-cream' : 'bg-brand text-cream'}`}>{busy ? t('Please wait…') : t(confirmLabel)}</button>
+          <button onClick={onClose} className="rounded-xl border-2 border-black bg-white py-3.5 font-extrabold text-ink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 dark:border-white dark:bg-zinc-800 dark:text-white">{t('Not now')}</button>
+          <button onClick={onConfirm} disabled={busy} className={`rounded-xl border-2 border-black py-3.5 font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 disabled:opacity-60 dark:border-white ${tone === 'danger' ? 'bg-red-600' : 'bg-brand'}`}>{busy ? t('Please wait…') : t(confirmLabel)}</button>
         </div>
       </div>
     </Modal>

@@ -101,8 +101,8 @@ r.get('/search', asyncHandler(async (req, res) => {
     }
   });
   res.json({
-    from: { id: String(from._id), name: from.name, lat: from.lat, lng: from.lng },
-    to: { id: String(to._id), name: to.name, lat: to.lat, lng: to.lng },
+    from: { id: String(from._id), name: from.name, slug: from.slug, lat: from.lat, lng: from.lng },
+    to: { id: String(to._id), name: to.name, slug: to.slug, lat: to.lat, lng: to.lng },
     route: route.available ? { distanceKm: route.distanceKm, durationMin: route.durationMin, polyline: route.polyline, source: route.source } : null,
     demo: rows.length > 0 && rows.every((x) => x.demo),
     trips: rows,

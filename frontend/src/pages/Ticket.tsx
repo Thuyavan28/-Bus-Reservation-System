@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import JsBarcode from 'jsbarcode';
 import {
   LuArrowLeft, LuBus, LuClock,
-  LuDownload, LuMapPin, LuRadar, LuRoute,
+  LuDownload, LuExternalLink, LuMapPin, LuRadar, LuRoute,
   LuSparkles, LuUsers, LuReceipt
 } from 'react-icons/lu';
 import { bookingsApi } from '../utils/api';
@@ -25,7 +25,7 @@ const dayStr = (d: string) =>
   });
 
 /** Scannable Code 128 barcode of the PNR, drawn as SVG */
-function Barcode({ value }: { value: string }) {
+export function Barcode({ value }: { value: string }) {
   const ref = useRef<SVGSVGElement>(null);
   useEffect(() => {
     if (ref.current) {
@@ -129,7 +129,7 @@ export default function Ticket() {
      Boarding Pass Card with crisp black borders
   ───────────────────────────────────────────────────────────── */
   const BoardingPassCard = (
-    <article className="relative overflow-hidden rounded-[2rem] border-2 border-black bg-white shadow-card dark:border-white dark:bg-zinc-900">
+    <article className="relative overflow-hidden rounded-[2rem] border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
       {/* Route Header Banner */}
       <div className="border-b-2 border-black bg-gray-50/80 p-5 dark:border-white dark:bg-zinc-800/50">
         <div className="flex items-center justify-between">
@@ -260,23 +260,25 @@ export default function Ticket() {
 
       {/* Barcode / QR Section */}
       <div className="border-t-2 border-dashed border-black p-5 text-center dark:border-white">
-        <div className="mb-3.5 flex justify-center gap-2">
+        <div className="mb-3.5 flex justify-center gap-2.5">
           <button
+            type="button"
             onClick={() => setMode('barcode')}
-            className={`rounded-full px-4 py-1.5 text-xs font-black border-2 transition ${
+            className={`rounded-xl px-4 py-1.5 text-xs font-black border-2 transition active:scale-95 ${
               mode === 'barcode'
-                ? 'border-black bg-brand text-white shadow-sm'
-                : 'border-black/30 bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300 dark:border-white/30'
+                ? 'border-black bg-brand text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                : 'border-black bg-white text-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
             }`}
           >
             Barcode
           </button>
           <button
+            type="button"
             onClick={() => setMode('qr')}
-            className={`rounded-full px-4 py-1.5 text-xs font-black border-2 transition ${
+            className={`rounded-xl px-4 py-1.5 text-xs font-black border-2 transition active:scale-95 ${
               mode === 'qr'
-                ? 'border-black bg-brand text-white shadow-sm'
-                : 'border-black/30 bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300 dark:border-white/30'
+                ? 'border-black bg-brand text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                : 'border-black bg-white text-gray-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]'
             }`}
           >
             QR Code
@@ -296,7 +298,7 @@ export default function Ticket() {
               <img
                 src={qr.data.qr}
                 alt={t('QR e-ticket')}
-                className="mx-auto h-36 w-36 rounded-xl border-2 border-black p-2 shadow-sm bg-white"
+                className="mx-auto h-36 w-36 rounded-xl border-2 border-black p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white"
               />
             ) : (
               <div className="skeleton mx-auto h-36 w-36 rounded-xl" />
@@ -304,10 +306,20 @@ export default function Ticket() {
             <p className="mt-2 text-base font-black tracking-[0.25em] text-gray-800 dark:text-white">
               {d.pnr}
             </p>
+            <div className="mt-2 flex justify-center">
+              <Link
+                to={`/ticket/verify/${d.pnr}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-brand/10 px-3 py-1 text-xs font-black text-brand shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition hover:bg-brand/20 active:scale-95"
+              >
+                <span>{t('View Verified Pass')}</span>
+                <LuExternalLink size={12} />
+              </Link>
+            </div>
           </div>
         )}
 
-        <p className="mt-1.5 text-[11px] font-semibold text-gray-500">
+        <p className="mt-2 text-[11px] font-semibold text-gray-500">
           Show this digital ticket at boarding gate
         </p>
 
@@ -350,7 +362,7 @@ export default function Ticket() {
         {/* LEFT COLUMN: Journey Details & Passenger Summary */}
         <div className="space-y-5 lg:col-span-7">
           {/* Trip Journey Card with Black Border */}
-          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-sm dark:border-white dark:bg-zinc-900">
+          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b-2 border-black pb-3 dark:border-white">
               <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 <LuRoute size={16} className="text-brand" /> Journey Overview
@@ -413,7 +425,7 @@ export default function Ticket() {
           </section>
 
           {/* Passenger Breakdown Card with Black Border */}
-          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-sm dark:border-white dark:bg-zinc-900">
+          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b-2 border-black pb-3 dark:border-white">
               <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 <LuUsers size={16} className="text-brand" /> Passenger Details ({d.passengers.length})
@@ -440,7 +452,7 @@ export default function Ticket() {
           </section>
 
           {/* Fare & Invoice Breakdown Card with Black Border */}
-          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-sm dark:border-white dark:bg-zinc-900">
+          <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
             <div className="flex items-center justify-between border-b-2 border-black pb-3 dark:border-white">
               <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 <LuReceipt size={16} className="text-brand" /> Fare & Invoice Summary
@@ -469,14 +481,14 @@ export default function Ticket() {
           <div className="grid grid-cols-2 gap-3 pt-1">
             <Link
               to={`/track/${d.id}`}
-              className="flex items-center justify-center gap-2 rounded-2xl border-2 border-black bg-white py-3.5 text-xs font-bold text-gray-800 shadow-sm transition hover:bg-gray-50 active:scale-98 dark:border-white dark:bg-zinc-900 dark:text-white"
+              className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-white py-3.5 text-xs font-extrabold text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 dark:border-white dark:bg-zinc-900 dark:text-white"
             >
               <LuRadar size={16} className="text-brand" />
               Live Bus Tracking
             </Link>
             <Link
               to="/trips"
-              className="flex items-center justify-center gap-2 rounded-2xl border-2 border-black bg-white py-3.5 text-xs font-bold text-gray-800 shadow-sm transition hover:bg-gray-50 active:scale-98 dark:border-white dark:bg-zinc-900 dark:text-white"
+              className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-white py-3.5 text-xs font-extrabold text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 dark:border-white dark:bg-zinc-900 dark:text-white"
             >
               <LuMapPin size={16} className="text-brand" />
               My Trips & Passes
@@ -492,7 +504,7 @@ export default function Ticket() {
           <button
             onClick={pdf}
             disabled={d.status === 'pending_payment'}
-            className="flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-black bg-brand py-4 text-base font-black text-white shadow-[0_4px_20px_rgba(255,24,64,0.35)] transition hover:bg-brand-500 active:scale-[.99] disabled:opacity-50 dark:border-white"
+            className="flex min-h-[50px] w-full items-center justify-center gap-2.5 rounded-xl border-2 border-black bg-brand py-3.5 text-base font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 disabled:opacity-50 dark:border-white"
           >
             <LuDownload size={20} />
             Download Ticket (PDF)

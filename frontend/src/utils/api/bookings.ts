@@ -25,8 +25,10 @@ export const bookingsApi = {
   create: (b: CreateBookingBody) => http.post<{ id: string }>('/bookings', b),
   list: (tab: BookingTab) => http.get<any[]>(`/bookings?tab=${tab}`),
   get: (id: string) => http.get<any>(`/bookings/${id}`),
-  ticket: (id: string) => http.get<{ qr: string; pnr: string }>(`/bookings/${id}/ticket`),
+  ticket: (id: string) => http.get<{ qr: string; pnr: string; verifyUrl?: string }>(`/bookings/${id}/ticket`),
   ticketPdf: (id: string) => http.blob(`/bookings/${id}/ticket.pdf`),
+  verify: (pnr: string) => http.get<any>(`/bookings/verify/${pnr}`),
+  verifyPdf: (pnr: string) => http.blob(`/bookings/verify/${pnr}/pdf`),
   cancelPreview: (id: string) => http.get<any>(`/bookings/${id}/cancel-preview`),
   cancel: (id: string) => http.post(`/bookings/${id}/cancel`),
 };

@@ -108,16 +108,16 @@ export function PaginationErrorIndicator({
 
   return (
     <div
-      className={`my-4 flex items-center justify-center gap-3 rounded-xl border border-ink/10 bg-card p-4 text-center text-sm shadow-sm ${className}`}
+      className={`my-4 flex items-center justify-center gap-3 rounded-2xl border-2 border-black bg-white p-4 text-center text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900 ${className}`}
     >
-      <span className="text-xs font-medium text-ink-soft">
+      <span className="text-xs font-bold text-ink">
         Couldn't load more results
       </span>
       <button
         type="button"
         onClick={handleRetry}
         disabled={retrying}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-cream shadow-sm hover:bg-brand-500 disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-brand px-3 py-1.5 text-xs font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 disabled:opacity-60"
       >
         {retrying ? <LuLoader size={13} className="animate-spin" /> : <LuRotateCcw size={13} />}
         {retrying ? 'Loading…' : 'Retry'}
@@ -149,14 +149,14 @@ export function SectionErrorWidget({
 
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-dashed border-ink/20 bg-surface-tint/50 p-3.5 text-xs text-ink-soft ${className}`}
+      className={`flex items-center justify-between rounded-2xl border-2 border-black bg-white p-3.5 text-xs text-ink shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900 ${className}`}
     >
-      <span className="font-semibold text-ink">{title}</span>
+      <span className="font-extrabold text-ink">{title}</span>
       <button
         type="button"
         onClick={handleRetry}
         disabled={retrying}
-        className="inline-flex items-center gap-1 rounded-lg border border-ink/15 bg-card px-2.5 py-1 text-xs font-bold text-ink hover:bg-ink/5"
+        className="inline-flex items-center gap-1 rounded-xl border-2 border-black bg-white px-3 py-1.5 text-xs font-extrabold text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
       >
         {retrying ? <LuLoader size={12} className="animate-spin" /> : <LuRotateCcw size={12} />}
         {retrying ? 'Retrying…' : 'Retry'}

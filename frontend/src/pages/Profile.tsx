@@ -41,7 +41,7 @@ export default function Profile() {
     onSuccess: () => { toast.success(t('Passenger saved')); setEditing(null); f.reset(); qc.invalidateQueries({ queryKey: ['passengers'] }); },
     onError: (x) => toast.error(errorMessage(x)),
   });
-  const del = useMutation({ mutationFn: (id: string) => passengersApi.remove(id), onSuccess: () => { toast.success(t('Passenger removed')); setDelId(null); qc.invalidateQueries({ queryKey: ['passengers'] }); } });
+  const del = useMutation({ mutationFn: (id: string) => passengersApi.remove(id), onSuccess: () => { toast.success(t('Passenger removed')); setDelId(null); qc.invalidateQueries({ queryKey: ['passengers'] }); }, onError: (x) => toast.error(errorMessage(x)) });
 
   if (!user) return null;
   if (list.isLoading) return <div><PageHeader to="/home" title={t('profile')} /><ProfileSkeleton /></div>;

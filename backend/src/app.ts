@@ -27,31 +27,39 @@ export function createApp() {
     'https://bus-reservation-system-red.vercel.app',
     'https://bus17.netlify.app',
   ];
-  app.use(
-    cors({
-      origin: (origin, cb) => {
-        // no-origin = server-to-server / curl / same-origin → always allow
-        if (!origin) return cb(null, true);
-        const norm = origin.replace(/\/+$/, '');
-        if (
-          allowedOrigins.includes(norm) ||
-          (env.CLIENT_URL && norm === env.CLIENT_URL.replace(/\/+$/, '')) ||
-          /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(norm)
-        ) {
-          return cb(null, true);
-        }
-        // Fail open so QR-code scans from unknown origins still work
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, cb) => {
+      // no-origin = server-to-server / curl / same-origin → always allow
+      if (!origin) return cb(null, true);
+      const norm = origin.replace(/\/+$/, '');
+      if (
+        allowedOrigins.includes(norm) ||
+        (env.CLIENT_URL && norm === env.CLIENT_URL.replace(/\/+$/, '')) ||
+        /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(norm)
+      ) {
         return cb(null, true);
-      },
-      credentials: true,
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-      optionsSuccessStatus: 200, // some legacy browsers choke on 204
-    }),
-  );
-  // Pre-flight is fully handled by cors() above; this makes sure Express
-  // responds immediately and doesn't fall through to other handlers.
-  app.options('*', cors());
+      }
+      // Fail open so QR-code scans from unknown origins still work
+      return cb(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Idempotency-Key',
+      'idempotency-key',
+      'X-Signature',
+      'x-signature',
+      'Accept',
+      'Origin',
+    ],
+    optionsSuccessStatus: 200, // some legacy browsers choke on 204
+  };
+  app.use(cors(corsOptions));
+  // Pre-flight is fully handled by cors(corsOptions)
+  app.options('*', cors(corsOptions));
 
   app.use(compression());
   app.use(helmet({ contentSecurityPolicy: false }));

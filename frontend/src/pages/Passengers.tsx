@@ -276,11 +276,11 @@ export default function Passengers() {
           <div className="space-y-2">
             <button
               disabled={f.formState.isSubmitting}
-              className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-4 text-base font-bold text-cream shadow-cta transition hover:bg-brand-500 active:scale-[.99] disabled:opacity-60 dark:border-white"
+              className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-4 text-base font-extrabold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.99] disabled:opacity-60 dark:border-white"
             >
               {f.formState.isSubmitting ? (
                 <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-surface/40 border-t-cream" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                   {t('Creating booking…')}
                 </>
               ) : (
@@ -367,8 +367,8 @@ function PassengerDialog({ open, title, seat, gender, initial, saved, onClose, o
         </div>
         <label className="flex animate-fadeUp items-start gap-2.5 text-sm text-ink-soft" style={step(4)}><input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#FF1840]" checked={family} onChange={(e) => setFamily(e.target.checked)} /><span>{t('Family member. May sit beside others in my family.')}</span></label>
         {err.form && <p role="alert" className="animate-pop rounded-2xl border-2 border-red-500 bg-red-500/10 p-3 text-sm font-semibold text-red-700">{err.form}</p>}
-        <button disabled={busy} className="flex w-full animate-fadeUp items-center justify-center gap-2 rounded-2xl border-2 border-black bg-brand py-4 text-base font-extrabold text-cream shadow-cta transition active:scale-[.99] disabled:opacity-60 dark:border-white" style={step(5)}>
-          {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream/40 border-t-cream" />}{busy ? t('Checking seat rules…') : t('Save passenger')}
+        <button disabled={busy} className="flex w-full animate-fadeUp items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-4 text-base font-extrabold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.99] disabled:opacity-60 dark:border-white" style={step(5)}>
+          {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}{busy ? t('Checking seat rules…') : t('Save passenger')}
         </button>
       </form>
     </Modal>

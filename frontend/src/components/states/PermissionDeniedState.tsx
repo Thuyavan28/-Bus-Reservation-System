@@ -85,10 +85,10 @@ export function PermissionDeniedState({
     <div
       role="region"
       aria-label={c.title}
-      className={`mx-auto flex w-full max-w-lg flex-col items-center rounded-2xl border border-ink/10 bg-card p-6 text-center shadow-card sm:p-10 ${className}`}
+      className={`mx-auto flex w-full max-w-lg flex-col items-center rounded-3xl border-2 border-black bg-white p-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:p-12 ${className}`}
     >
       {/* Icon */}
-      <div className="relative mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/10 text-amber-600 ring-8 ring-amber-500/5 dark:bg-amber-500/20 dark:text-amber-400">
+      <div className="relative mb-5 grid h-16 w-16 place-items-center rounded-2xl border-2 border-black bg-amber-500/10 text-amber-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
         <Icon size={32} />
       </div>
 
@@ -142,7 +142,7 @@ export function PermissionDeniedState({
           <button
             type="button"
             onClick={onRequestPermission}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-bold text-cream shadow-cta transition hover:bg-brand-500 active:scale-95"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand px-6 py-2.5 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
           >
             <LuRotateCcw size={16} />
             {c.actionLabel}
@@ -150,7 +150,7 @@ export function PermissionDeniedState({
         ) : kind === 'account-role' ? (
           <a
             href="mailto:admin@busgosouth.in?subject=Operator%20Role%20Request"
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-bold text-cream shadow-cta transition hover:bg-brand-500 active:scale-95"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand px-6 py-2.5 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
           >
             <LuKeyRound size={16} />
             {c.actionLabel}
@@ -159,7 +159,7 @@ export function PermissionDeniedState({
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-bold text-cream shadow-cta transition hover:bg-brand-500 active:scale-95"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand px-6 py-2.5 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
           >
             <LuRotateCcw size={16} />
             Refresh After Granting Permission
@@ -170,7 +170,7 @@ export function PermissionDeniedState({
         <button
           type="button"
           onClick={onFallbackAction || onSafeReturn || (() => window.history.back())}
-          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-ink/20 bg-card px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink/5 active:scale-95"
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-black bg-white px-5 py-2.5 text-sm font-extrabold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
         >
           <LuArrowLeft size={16} />
           {fallbackLabel || c.fallbackLabel}

@@ -48,7 +48,7 @@ export const useBooking = create<BookingState>()(
       clearSelection: () =>
         set({ tripId: null, holdId: null, holdExpiresAt: null, boardingPointId: null, droppingPointId: null, pax: get().pax.map((p) => ({ gender: p.gender })) }),
     }),
-    { name: 'busgo-booking', storage: createJSONStorage(() => sessionStorage) },
+    { name: 'busgo-booking', storage: createJSONStorage(() => localStorage) },
   ),
 );
 

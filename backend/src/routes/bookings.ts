@@ -1,14 +1,33 @@
 import { Router } from 'express';
 import QRCode from 'qrcode';
 import { z } from 'zod';
+import { env } from '../config/env';
 import { Booking, BookingPassenger, CancellationRequest, City, Notification, Passenger, Refund, Trip, User } from '../models';
 import { requireAuth } from '../services/auth';
 import { cancellationPreview, requestCancellation } from '../services/cancellationService';
 import { createBooking } from '../services/bookingService';
 import { buildTicketPdf, loadBookingBundle, qrPayload } from '../services/email';
 import { asyncHandler, HttpError, parse } from '../utils/http';
+import { parseOrigin, publicAppOrigin } from '../utils/network';
 
 const r = Router();
+
+// ── Public: ticket verification by PNR (no login required so any phone scanning the QR can view ticket details) ──
+r.get('/bookings/verify/:pnr', asyncHandler(async (req, res) => {
+  const pnr = String(req.params.pnr).trim().toUpperCase();
+  const b = await Booking.findOne({ $or: [{ pnr }, { _id: pnr.length === 24 ? pnr : undefined }] }).lean();
+  if (!b) throw new HttpError(404, 'TICKET_NOT_FOUND', 'No ticket found with this PNR code');
+  res.json(await shape(String(b._id)));
+}));
+
+r.get('/bookings/verify/:pnr/pdf', asyncHandler(async (req, res) => {
+  const pnr = String(req.params.pnr).trim().toUpperCase();
+  const b = await Booking.findOne({ $or: [{ pnr }, { _id: pnr.length === 24 ? pnr : undefined }] }).lean();
+  if (!b) throw new HttpError(404, 'TICKET_NOT_FOUND');
+  if (b.status === 'pending_payment') throw new HttpError(409, 'NOT_PAID');
+  res.type('application/pdf').set('Content-Disposition', `attachment; filename=ticket-${b.pnr}.pdf`).send(await buildTicketPdf(String(b._id)));
+}));
+
 r.use(requireAuth);
 
 const gender = z.enum(['male', 'female', 'other']);
@@ -111,8 +130,11 @@ r.get('/bookings/:id', asyncHandler(async (req, res) => {
 
 r.get('/bookings/:id/ticket', asyncHandler(async (req, res) => {
   const b = await own(String(req.params.id), req.auth!.id);
-  const qr = await QRCode.toDataURL(qrPayload(b.pnr, String(b._id)), { margin: 1, width: 220 });
-  res.json({ qr, pnr: b.pnr });
+  const origin = parseOrigin(req.get('origin')) ?? parseOrigin(req.get('referer'));
+  const { origin: appOrigin } = publicAppOrigin({ configured: env.PUBLIC_APP_URL, requestOrigin: origin, fallback: env.CLIENT_URL });
+  const verifyUrl = `${appOrigin}/ticket/verify/${b.pnr}`;
+  const qr = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 280, color: { dark: '#000000', light: '#FFFFFF' } });
+  res.json({ qr, pnr: b.pnr, verifyUrl });
 }));
 
 r.get('/bookings/:id/ticket.pdf', asyncHandler(async (req, res) => {

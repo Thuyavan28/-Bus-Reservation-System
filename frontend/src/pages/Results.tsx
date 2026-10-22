@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -76,6 +76,17 @@ export default function Results() {
   }, [date]);
 
   const d = q.data;
+
+  useEffect(() => {
+    if (d?.from && d?.to) {
+      b.set({
+        from: { id: d.from.id, name: d.from.name, slug: d.from.slug || from },
+        to: { id: d.to.id, name: d.to.name, slug: d.to.slug || to },
+        date,
+      });
+    }
+  }, [d?.from?.id, d?.to?.id, d?.from?.slug, d?.to?.slug, d?.from?.name, d?.to?.name, from, to, date]);
+
   const dateRef = useRef<HTMLInputElement>(null);
   const filtersN = types.length + bands.length + (ac ? 1 : 0);
 
@@ -259,7 +270,7 @@ export default function Results() {
               <article
                 key={tr.id}
                 style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}
-                className="animate-fadeUp rounded-3xl border-2 border-black bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:border-white dark:bg-zinc-900"
+                className="animate-fadeUp rounded-3xl border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900"
               >
                 {/* Top Row: Operator + Bus Model & Price */}
                 <div className="flex items-start justify-between gap-3">
@@ -370,7 +381,7 @@ export default function Results() {
                     b.set({ tripId: tr.id, holdId: null, holdExpiresAt: null });
                     nav(`/trip/${tr.id}/seats`);
                   }}
-                  className="mt-4 flex min-h-[46px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-black bg-brand py-3 text-sm font-extrabold text-white shadow-cta transition hover:bg-brand-500 active:scale-[.99] disabled:opacity-50 dark:border-white"
+                  className="mt-4 flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-3 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.99] disabled:opacity-50 dark:border-white"
                 >
                   <LuArmchair size={16} />
                   {t('selectSeats')}

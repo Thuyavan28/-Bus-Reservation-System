@@ -4,7 +4,20 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   // host: true => reachable from phones on the same network (needed to scan the payment QR)
-  server: { host: true, port: 5173, proxy: { '/api': 'http://localhost:4000', '/mock-gateway': 'http://localhost:4000' } },
+  server: {
+    host: true,
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:4000',
+        changeOrigin: true,
+      },
+      '/mock-gateway': {
+        target: 'http://127.0.0.1:4000',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     target: 'es2020',
     rollupOptions: {

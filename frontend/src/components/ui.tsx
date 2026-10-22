@@ -34,17 +34,17 @@ export function PageHeader({ title, subtitle, right, onBack, to }: { title: Reac
 
 export function Button({ variant = 'primary', className = '', ...p }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'accent' | 'ghost' | 'danger' | 'glass' }) {
   const v = {
-    primary: 'bg-brand text-cream shadow-cta hover:bg-brand-500',
-    accent: 'bg-brand text-cream shadow-cta hover:bg-brand-500',
-    ghost: 'border-2 border-ink bg-card text-ink hover:bg-ink hover:text-cream',
-    glass: 'glass text-ink',
-    danger: 'bg-ink text-cream hover:bg-black',
+    primary: 'border-2 border-black bg-brand text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]',
+    accent: 'border-2 border-black bg-brand text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]',
+    ghost: 'border-2 border-black bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] dark:bg-zinc-800 dark:text-white',
+    glass: 'border-2 border-black bg-white/95 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]',
+    danger: 'border-2 border-black bg-red-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]',
   }[variant];
-  return <button {...p} className={`rounded-2xl px-5 py-3.5 text-sm font-extrabold transition active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50 ${v} ${className}`} />;
+  return <button {...p} className={`rounded-xl px-6 py-2.5 text-sm font-extrabold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${v} ${className}`} />;
 }
 
 export const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className={`rounded-3xl border-2 border-black bg-card p-4 shadow-card dark:border-white ${className}`}>{children}</div>
+  <div className={`rounded-3xl border-2 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900 ${className}`}>{children}</div>
 );
 
 export const ErrorText = ({ children }: { children?: ReactNode }) =>

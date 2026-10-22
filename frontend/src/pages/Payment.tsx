@@ -278,6 +278,7 @@ export default function Payment() {
   const b = useBooking();
   const qc = useQueryClient();
   const [pay, setPay] = useState<InitiatedPayment | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [rejected, setRejected] = useState(false);
   const [overlay, setOverlay] = useState<OverlayPhase | null>(null);
@@ -288,14 +289,28 @@ export default function Payment() {
   const bk = q.data;
   const payable = bk?.status === 'pending_payment';
 
+  const startPayment = useCallback(() => {
+    if (!bookingId) return;
+    setInitError(null);
+    paymentsApi.initiate(bookingId, idemKey(bookingId))
+      .then((res) => {
+        setPay(res);
+        setInitError(null);
+      })
+      .catch((e) => {
+        started.current = false;
+        const msg = errorMessage(e);
+        setInitError(msg);
+        toast.error(msg);
+      });
+  }, [bookingId]);
+
   // Create the payment (QR) as soon as the booking is known to be payable
   useEffect(() => {
     if (!payable || started.current) return;
     started.current = true;
-    paymentsApi.initiate(bookingId, idemKey(bookingId))
-      .then(setPay)
-      .catch((e) => { started.current = false; toast.error(errorMessage(e)); });
-  }, [payable, bookingId]);
+    startPayment();
+  }, [payable, startPayment]);
 
   // Poll payment status — fast interval
   const status = useQuery({
@@ -436,7 +451,7 @@ export default function Payment() {
           <div className="space-y-4">
             <Countdown to={bk.holdExpiresAt} onExpire={() => { b.clearSelection(); q.refetch(); }} />
 
-            <section className="rounded-3xl border border-ink/10 bg-card p-4 shadow-card">
+            <section className="rounded-3xl border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-lg font-extrabold">{tp(bk.from)}<Arrow />{tp(bk.to)}</p>
@@ -461,46 +476,99 @@ export default function Payment() {
 
           <div className="space-y-4 lg:sticky lg:top-24">
             {/* QR section */}
-            <section className="rounded-[2rem] border border-ink/10 bg-card p-5 text-center shadow-card">
-              <p className="flex items-center justify-center gap-2 text-sm font-extrabold">
-                <LuScanLine size={17} className="text-brand-700" />{t('Scan this QR with your phone')}
-              </p>
-              <div className="relative mx-auto mt-4 grid h-64 w-64 place-items-center rounded-3xl bg-white p-3 shadow-glow">
-                {pay ? <img src={pay.qr} alt={t('Payment QR code')} className="h-full w-full" /> : <Spinner />}
-                {pay && !overlay && <span className="pointer-events-none absolute inset-x-4 h-0.5 animate-scan rounded-full bg-brand shadow-[0_0_14px_#E5123A]" />}
+            <section className="rounded-3xl border-2 border-black bg-white p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-zinc-900">
+              <div className="flex items-center justify-center gap-2">
+                <span className="grid h-7 w-7 place-items-center rounded-xl border border-black/20 bg-brand/10 text-brand">
+                  <LuScanLine size={16} />
+                </span>
+                <p className="text-sm font-extrabold text-ink">{t('Scan this QR with your phone')}</p>
               </div>
-              <p className="mt-4 text-3xl font-extrabold tabular-nums">{inr(bk.price.total)}</p>
+
+              {/* QR display or animated loading */}
+              <div className="relative mx-auto mt-4 grid h-64 w-64 place-items-center rounded-3xl border-2 border-black bg-white p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                {pay ? (
+                  <>
+                    <img src={pay.qr} alt={t('Payment QR code')} className="h-full w-full rounded-2xl" />
+                    {!overlay && (
+                      <span className="pointer-events-none absolute inset-x-4 h-0.5 animate-scan rounded-full bg-brand shadow-[0_0_14px_#E5123A]" />
+                    )}
+                  </>
+                ) : initError ? (
+                  <div className="flex flex-col items-center justify-center gap-3 p-4 text-center">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-black bg-red-50 text-red-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      <LuCircleX size={28} />
+                    </span>
+                    <p className="text-xs font-bold text-red-600">{initError}</p>
+                    <button
+                      type="button"
+                      onClick={startPayment}
+                      className="mt-1 rounded-xl border-2 border-black bg-brand px-4 py-2 text-xs font-bold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
+                    >
+                      Retry QR
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="relative h-12 w-12">
+                      <div className="absolute inset-0 rounded-full border-2 border-brand/20" />
+                      <div className="absolute inset-0 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+                    </div>
+                    <p className="text-xs font-semibold text-ink-soft">{t('Preparing your payment…')}</p>
+                  </div>
+                )}
+              </div>
+
+              <p className="mt-4 text-3xl font-extrabold tabular-nums text-ink">{inr(bk.price.total)}</p>
 
               {/* Dynamic status indicator */}
               <div className="mt-2 flex items-center justify-center gap-2 text-sm">
-                {!pay && <span className="text-ink-soft">{t('Preparing your payment…')}</span>}
-                {pay && !st && <><span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" /><span className="text-ink-soft">{t('Waiting for you to accept the payment…')}</span></>}
+                {!pay && !initError && <span className="text-ink-soft">{t('Preparing your payment…')}</span>}
+                {pay && !st && (
+                  <>
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+                    <span className="text-xs font-semibold text-ink-soft">{t('Waiting for you to accept the payment…')}</span>
+                  </>
+                )}
                 {pay && (st?.status === 'success' || bk?.status === 'booked') && (
-                  <div className="flex items-center justify-center gap-2 text-sm font-bold text-brand">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+                  <div className="flex items-center justify-center gap-2 text-sm font-bold text-green-700">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
                     <span>Payment received! Confirming your booking…</span>
                   </div>
                 )}
               </div>
 
-              <ol className="mt-4 space-y-2 rounded-2xl bg-ink/5 p-3.5 text-left text-xs text-ink-soft">
-                <li className="flex gap-2"><LuSmartphone size={15} className="mt-0.5 shrink-0 text-brand-700" />{t('Scan the QR with your phone camera.')}</li>
-                <li className="flex gap-2"><LuCircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />{t('Tap')} <b className="text-ink">{t('Accept payment')}</b>{t(': your order is placed instantly.')}</li>
-                <li className="flex gap-2"><LuCircleX size={15} className="mt-0.5 shrink-0 text-red-700" />{t('Tap')} <b className="text-ink">{t('Reject')}</b>{t(': the order is removed and seats are released.')}</li>
+              <ol className="mt-4 space-y-2 rounded-2xl border-2 border-black/10 bg-gray-50 p-3.5 text-left text-xs text-ink-soft">
+                <li className="flex gap-2">
+                  <LuSmartphone size={15} className="mt-0.5 shrink-0 text-brand-700" />
+                  {t('Scan the QR with your phone camera.')}
+                </li>
+                <li className="flex gap-2">
+                  <LuCircleCheck size={15} className="mt-0.5 shrink-0 text-green-700" />
+                  {t('Tap')} <b className="text-ink">{t('Accept payment')}</b>{t(': your order is placed instantly.')}
+                </li>
+                <li className="flex gap-2">
+                  <LuCircleX size={15} className="mt-0.5 shrink-0 text-red-700" />
+                  {t('Tap')} <b className="text-ink">{t('Reject')}</b>{t(': the order is removed and seats are released.')}
+                </li>
               </ol>
 
               {pay && (
-                <a href={pay.approveUrl} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-ink/15 py-3 text-sm font-bold">
+                <a
+                  href={pay.approveUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-white py-3 text-sm font-extrabold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
+                >
                   {t('Open the approval page on this device')} <LuArrowRight size={15} />
                 </a>
               )}
               {pay && (
                 <div className="mt-3 space-y-2 text-center">
-                  <p className="break-all rounded-xl bg-ink/5 px-3 py-2 text-[11px] font-semibold text-ink-soft" dir="ltr">{pay.approveUrl}</p>
+                  <p className="break-all rounded-xl border border-black/15 bg-gray-50 px-3 py-2 text-[11px] font-semibold text-ink-soft" dir="ltr">{pay.approveUrl}</p>
                   <button
                     type="button"
                     onClick={() => { void navigator.clipboard?.writeText(pay.approveUrl).then(() => toast.success(t('Link copied')), () => toast.error(t('Could not copy the link'))); }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3.5 py-1.5 text-xs font-extrabold transition active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-white px-3.5 py-1.5 text-xs font-extrabold text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95"
                   >
                     <LuCopy size={13} />{t('Copy link')}
                   </button>
@@ -511,7 +579,7 @@ export default function Payment() {
               )}
             </section>
 
-            <button onClick={viaWebsite} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-card py-3.5 text-sm font-bold text-ink-soft lg:hidden">
+            <button onClick={viaWebsite} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-white py-3.5 text-sm font-extrabold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 lg:hidden">
               <LuExternalLink size={16} />{busy ? t('Redirecting…') : t('Pay on a payment website instead')}
             </button>
             <p className="flex items-center justify-center gap-1.5 text-center text-xs text-ink-soft">

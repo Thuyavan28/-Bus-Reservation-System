@@ -224,8 +224,8 @@ export default function Seats() {
   if (!trip.data) return <div className="rounded-3xl border border-ink/10 bg-card p-8 text-center">{t('Trip not found.')}</div>;
 
   const CTA = (
-    <button onClick={proceed} disabled={busy || !ready} className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-black bg-brand py-4 text-base font-extrabold text-cream shadow-cta transition hover:bg-brand-500 active:scale-[.98] disabled:opacity-50 dark:border-white">
-      {busy ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-surface/40 border-t-cream" />{t('Holding seats…')}</> : <>{t('continue')}{fare ? ` · ${inr(fare.total)}` : ''}</>}
+    <button onClick={proceed} disabled={busy || !ready} className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black bg-brand py-4 text-base font-extrabold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.98] disabled:opacity-50 dark:border-white">
+      {busy ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />{t('Holding seats…')}</> : <>{t('continue')}{fare ? ` · ${inr(fare.total)}` : ''}</>}
     </button>
   );
 
@@ -268,17 +268,17 @@ export default function Seats() {
       </div>
 
       {/* phone: sticky total + continue */}
-      <div className="sticky bottom-3 z-20 mt-5 flex items-center gap-3 rounded-[1.6rem] border-2 border-black bg-card p-3 pl-4 shadow-lift lg:hidden dark:border-white">
+      <div className="sticky bottom-3 z-20 mt-5 flex items-center gap-3 rounded-3xl border-2 border-black bg-white p-3 pl-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] lg:hidden dark:border-white dark:bg-zinc-900">
         <div className="min-w-0 flex-1">
           <p className="truncate text-[11px] font-bold text-ink-soft">{chosen.length}/{pax.length} {t('Seats').toLowerCase()}{chosen.length ? ` · ${chosen.map((p) => p.seatId!.split('-').pop()).join(', ')}` : ''}</p>
           <p className="text-xl font-extrabold text-brand">{fare ? inr(fare.total) : inr(0)}</p>
         </div>
-        <button onClick={proceed} disabled={busy || !ready} className="rounded-2xl border-2 border-black bg-brand px-7 py-3.5 text-sm font-extrabold text-cream shadow-cta transition active:scale-95 disabled:opacity-50 dark:border-white">{busy ? t('Holding…') : t('continue')}</button>
+        <button onClick={proceed} disabled={busy || !ready} className="rounded-xl border-2 border-black bg-brand px-7 py-3 text-sm font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95 disabled:opacity-50 dark:border-white">{busy ? t('Holding…') : t('continue')}</button>
       </div>
 
       <Modal open={!!conflict} onClose={() => setConflict('')} title={t('Seat not available')}>
         <p className="text-sm font-semibold text-ink-soft">{conflict}</p>
-        <button onClick={() => setConflict('')} className="mt-4 w-full rounded-2xl bg-brand py-3.5 font-extrabold text-cream">{t('Choose again')}</button>
+        <button onClick={() => setConflict('')} className="mt-4 w-full rounded-xl border-2 border-black bg-brand py-3.5 font-extrabold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-95">{t('Choose again')}</button>
       </Modal>
     </div>
   );

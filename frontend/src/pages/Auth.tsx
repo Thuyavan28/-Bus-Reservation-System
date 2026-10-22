@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { LuArrowRight, LuBus, LuCheck, LuChevronLeft, LuCircleUserRound, LuFlame, LuLock, LuMail, LuPartyPopper, LuPhone, LuUser, LuUserRound } from 'react-icons/lu';
-import { authApi, errorMessage, type Session } from '../utils/api';
+import { ApiError, authApi, errorMessage, type Session } from '../utils/api';
 import { useAuth } from '../store/auth';
 import { toast } from '../store/ui';
 import { Logo } from '../components/ui';
@@ -76,12 +76,12 @@ function ProgressCard({ step, steps }: { step: number; steps: string[] }) {
 
 const Label = ({ children }: { children: ReactNode }) => <span className="mb-1.5 block text-sm font-extrabold">{children}</span>;
 const Err = ({ children }: { children?: ReactNode }) => (children ? <p role="alert" className="mt-1 text-xs font-semibold text-red-700">{typeof children === 'string' ? i18n.t(children) : children}</p> : null);
-const Input = forwardRef<HTMLInputElement, { icon: ReactNode } & React.InputHTMLAttributes<HTMLInputElement>>(({ icon, ...p }, ref) => (
-  <div className="flex items-center gap-3 rounded-2xl border-2 border-black bg-card px-4 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15 dark:border-white"><span className="text-ink-soft">{icon}</span><input ref={ref} {...p} className="w-full bg-transparent py-3.5 text-[15px] outline-none placeholder:text-ink-soft/60" /></div>
+const Input = forwardRef<HTMLInputElement, { icon: ReactNode; error?: boolean } & React.InputHTMLAttributes<HTMLInputElement>>(({ icon, error, ...p }, ref) => (
+  <div className={`flex items-center gap-3 rounded-2xl border-2 bg-white px-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition focus-within:ring-4 dark:bg-zinc-900 ${error ? 'border-red-600 focus-within:border-red-600 focus-within:ring-red-500/20' : 'border-black focus-within:border-brand focus-within:ring-brand/15 dark:border-white'}`}><span className="text-ink-soft">{icon}</span><input ref={ref} {...p} className="w-full bg-transparent py-3.5 text-[15px] outline-none placeholder:text-ink-soft/60" /></div>
 ));
 Input.displayName = 'Input';
 const Cta = ({ children, disabled, dark }: { children: ReactNode; disabled?: boolean; dark?: boolean }) => (
-  <button disabled={disabled} className={`mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-black py-4 text-base font-extrabold shadow-lift transition active:scale-[.99] disabled:opacity-60 dark:border-white ${dark ? 'bg-ink/10 text-ink' : 'bg-brand text-white shadow-cta'}`}>
+  <button disabled={disabled} className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-black py-4 text-base font-extrabold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-[1px] hover:translate-y-[1px] active:scale-[.99] disabled:opacity-60 dark:border-white ${dark ? 'bg-zinc-800 text-white' : 'bg-brand text-white'}`}>
     {disabled && <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/40 border-t-white" />}{children}
   </button>
 );
@@ -98,9 +98,37 @@ export function Login() {
 
   return (
     <Frame title={t('Welcome back')} subtitle={needLogin ? t('Log in to view seats and book your trip.') : t('Log in to book and manage your trips.')} label={t('Log in')}>
-      <form onSubmit={f.handleSubmit(async (v) => { try { done(await authApi.login(v)); } catch (e) { toast.error(errorMessage(e)); } })} className="space-y-3.5">
-        <label className="block"><Label>{t('email')}</Label><Input icon={<LuMail size={17} />} type="email" autoComplete="email" placeholder={t('you@email.com')} {...f.register('email')} /><Err>{f.formState.errors.email?.message}</Err></label>
-        <label className="block"><Label>{t('password')}</Label><Input icon={<LuLock size={17} />} type="password" autoComplete="current-password" placeholder={t('Your password')} {...f.register('password')} /><Err>{f.formState.errors.password?.message}</Err></label>
+      <form
+        onSubmit={f.handleSubmit(async (v) => {
+          try {
+            done(await authApi.login(v));
+          } catch (e: any) {
+            const code = e?.code;
+            if (code === 'ACCOUNT_NOT_FOUND') {
+              const msg = t('Account unavailable. Please check your email or create an account first.');
+              f.setError('email', { message: msg });
+              toast.error(msg);
+            } else if (code === 'INCORRECT_PASSWORD') {
+              const msg = t('Incorrect password. Please check your password.');
+              f.setError('password', { message: msg });
+              toast.error(msg);
+            } else {
+              toast.error(errorMessage(e));
+            }
+          }
+        })}
+        className="space-y-3.5"
+      >
+        <label className="block">
+          <Label>{t('email')}</Label>
+          <Input icon={<LuMail size={17} />} error={!!f.formState.errors.email} type="email" autoComplete="email" placeholder={t('you@email.com')} {...f.register('email')} />
+          <Err>{f.formState.errors.email?.message}</Err>
+        </label>
+        <label className="block">
+          <Label>{t('password')}</Label>
+          <Input icon={<LuLock size={17} />} error={!!f.formState.errors.password} type="password" autoComplete="current-password" placeholder={t('Your password')} {...f.register('password')} />
+          <Err>{f.formState.errors.password?.message}</Err>
+        </label>
         <div className="text-right"><Link to="/forgot-password" state={{ email: f.watch('email') }} className="text-sm font-extrabold text-brand-700">{t('Forgot password?')}</Link></div>
         <Cta disabled={f.formState.isSubmitting}>{t('login')} <LuArrowRight size={18} /></Cta>
       </form>
@@ -208,7 +236,12 @@ export function Signup() {
       const vals = f.getValues();
       const r = await authApi.signup({ ...vals, age: Number(vals.age) });
       done(r, i18n.t('Account created. Welcome, {{name}}!', { name: r.user.name.split(' ')[0] }));
-    } catch (x) { toast.error(errorMessage(x)); setStep(0); } finally { setBusy(false); }
+    } catch (x) {
+      toast.error(errorMessage(x));
+      // Go back to step 0 (email/phone) only for account-already-exists conflicts so the
+      // user can correct their email or phone. For any other error keep the review visible.
+      if (x instanceof ApiError && x.code === 'ACCOUNT_EXISTS') setStep(0);
+    } finally { setBusy(false); }
   }
 
   return (

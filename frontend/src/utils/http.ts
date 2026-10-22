@@ -1,5 +1,24 @@
 import i18n from '../i18n';
-const BASE = import.meta.env.VITE_API_URL || '/api';
+function getBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl || envUrl === '/api') return '/api';
+  if (typeof window !== 'undefined' && window.location) {
+    try {
+      const u = new URL(envUrl, window.location.origin);
+      if (
+        (u.hostname === 'localhost' || u.hostname === '127.0.0.1') &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1'
+      ) {
+        return '/api';
+      }
+    } catch {
+      // not a full URL, fallback to relative or as-is
+    }
+  }
+  return envUrl;
+}
+const BASE = getBaseUrl();
 
 let accessToken: string | null = null;
 export const setAccessToken = (t: string | null) => {
