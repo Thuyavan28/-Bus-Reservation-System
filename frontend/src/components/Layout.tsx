@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LuGlobe, LuHouse, LuLogOut, LuRadar, LuTicket, LuUser } from 'react-icons/lu';
+import { LuGlobe, LuHouse, LuLogOut, LuRadar, LuShieldCheck, LuTicket, LuUser } from 'react-icons/lu';
 import { LANGS, setLanguage } from '../i18n';
 import { useAuth } from '../store/auth';
 import { authApi } from '../utils/api';
@@ -43,6 +43,13 @@ export default function Layout() {
   const flow = /^\/(trip\/[^/]+\/(seats|points|passengers)|payment\/)/.test(loc.pathname);
   const [sessionExpired, setSessionExpired] = useState(false);
 
+  const mobileTabs = useMemo(() => {
+    if (user && (user.role === 'operator' || user.role === 'admin')) {
+      return [...TABS, { to: '/operator', key: 'operator', Icon: LuShieldCheck } as const];
+    }
+    return TABS;
+  }, [user]);
+
   useEffect(() => {
     const handleExpired = () => setSessionExpired(true);
     window.addEventListener('auth:expired', handleExpired);
@@ -82,32 +89,41 @@ export default function Layout() {
       <Suspense fallback={null}>{!flow && <Assistant />}</Suspense>
       <ToastHost />
 
-      {/* phone bottom bar matching reference mobile app design */}
+      {/* Floating pill navigation dock matching reference design (Image 3) */}
       {!flow && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t-2 border-black bg-white/95 px-2 py-2 backdrop-blur-md dark:border-white dark:bg-zinc-950/95 lg:hidden" aria-label={t('Main')}>
-          {TABS.map(({ to, key, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              aria-label={t(key)}
-              className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-all ${
-                isActive ? 'text-brand' : 'text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300'
-              }`}
-            >
-              {({ isActive }) => (
-                <>
-                  <div className={`relative flex items-center justify-center transition-transform ${isActive ? 'scale-110' : ''}`}>
-                    <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
-                  </div>
-                  <span className={`text-[10px] tracking-tight transition-all ${isActive ? 'font-black text-brand' : 'font-semibold'}`}>
-                    {key === 'trips' ? t('My Ticket') : key === 'home' ? t('Home') : key === 'track' ? t('Track') : t('Profile')}
-                  </span>
-                  {isActive && <span className="h-1 w-1 rounded-full bg-brand" />}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4 pointer-events-none lg:hidden">
+          <nav
+            className="pointer-events-auto flex items-center justify-between gap-1 rounded-full border border-black/10 bg-white/95 p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/95"
+            style={{ maxWidth: mobileTabs.length > 4 ? '420px' : '360px', width: '100%' }}
+            aria-label={t('Main')}
+          >
+            {mobileTabs.map(({ to, key, Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                aria-label={key === 'trips' ? t('My Ticket') : key === 'operator' ? t('Operator') : t(key)}
+                className={({ isActive }) =>
+                  `flex items-center justify-center transition-all duration-300 ease-out select-none ${
+                    isActive
+                      ? 'gap-2 rounded-full bg-brand px-4 py-2 text-xs font-black text-white shadow-sm'
+                      : 'h-10 w-10 rounded-full text-zinc-400 hover:text-ink hover:bg-black/5 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/5 active:scale-90'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={isActive ? 18 : 20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
+                    {isActive && (
+                      <span className="whitespace-nowrap font-black tracking-tight text-white">
+                        {key === 'trips' ? t('My Ticket') : key === 'home' ? t('Home') : key === 'track' ? t('Track') : key === 'operator' ? t('Operator') : t('Profile')}
+                      </span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       )}
 
       <SessionExpiredModal

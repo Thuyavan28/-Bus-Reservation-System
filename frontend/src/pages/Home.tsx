@@ -17,8 +17,7 @@ import MapLazy, { type MapMarker } from '../components/MapLazy';
 import { useMedia } from '../utils/useMedia';
 import PlaceInput from '../components/PlaceInput';
 const RouteTransition = lazy(() => import('../components/RouteTransition'));
-import { LanguageSelect } from '../components/Layout';
-import { Arrow, Logo } from '../components/ui';
+import { Arrow } from '../components/ui';
 import { Skeleton } from '../components/Overlay';
 
 const asRef = (p: Place) => ({ id: p.id, name: p.name, slug: p.slug });
@@ -488,18 +487,8 @@ export default function Home() {
      DESKTOP  (≥ lg) — unchanged two-column
   ══════════════════════════════════════════ */
   const Desktop = (
-    <div className="hidden lg:block">
+    <div className="hidden lg:block pt-6">
       <div className="space-y-6 pb-4">
-        <div className="flex items-center justify-between pt-4">
-          <Logo />
-          <div className="flex items-center gap-2">
-            <LanguageSelect className="!px-3 !py-2" />
-            {user
-              ? <button onClick={() => nav('/profile')} className="grid h-10 w-10 place-items-center rounded-full bg-brand text-sm font-extrabold text-cream">{user.name[0]?.toUpperCase()}</button>
-              : <button onClick={() => nav('/login', { state: { from: '/home' } })} className="rounded-full bg-brand px-4 py-2.5 text-sm font-extrabold text-cream">{t('login')}</button>}
-          </div>
-        </div>
-
         <div className="grid grid-cols-[minmax(0,500px)_1fr] gap-10">
           <div className="space-y-5">
             <div>
