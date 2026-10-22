@@ -25,6 +25,7 @@ export function createApp() {
   //    any other middleware (rate-limiter, helmet, etc.) can block them.
   const allowedOrigins = [
     'https://bus-reservation-system-red.vercel.app',
+    'https://bus-reservation-system-iv74.vercel.app',
     'https://bus17.netlify.app',
   ];
   const corsOptions: cors.CorsOptions = {

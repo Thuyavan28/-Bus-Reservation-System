@@ -1,7 +1,11 @@
 import i18n from '../i18n';
 function getBaseUrl(): string {
-  const envUrl = import.meta.env.VITE_API_URL;
+  let envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
   if (!envUrl || envUrl === '/api') return '/api';
+
+  // Strip trailing slashes
+  envUrl = envUrl.replace(/\/+$/, '');
+
   if (typeof window !== 'undefined' && window.location) {
     try {
       const u = new URL(envUrl, window.location.origin);
@@ -16,6 +20,12 @@ function getBaseUrl(): string {
       // not a full URL, fallback to relative or as-is
     }
   }
+
+  // Ensure /api is present when pointing to external server
+  if (/^https?:\/\//i.test(envUrl) && !envUrl.endsWith('/api')) {
+    envUrl = `${envUrl}/api`;
+  }
+
   return envUrl;
 }
 const BASE = getBaseUrl();
